@@ -19,7 +19,7 @@ export default class NodeDestroy extends Event {
 
         destroyCount++;
 
-        if (destroyCount >= 5) {
+        /*if (destroyCount >= 5) {
             this.client.shoukaku.removeNode(node);
             destroyCount = 0;
 
@@ -27,7 +27,7 @@ export default class NodeDestroy extends Event {
 
             this.client.logger.warn(warnMessage);
             BotLog.send(this.client, warnMessage, "warn");
-        }
+        }*/
     }
 }
 
