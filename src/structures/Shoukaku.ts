@@ -13,7 +13,7 @@ export default class ShoukakuClient extends Shoukaku {
             resumeByLibrary: true,
             reconnectInterval: 5,
             reconnectTries: 100,
-            restTimeout: 10000,
+            restTimeout: 50000,
             userAgent: "Lavamusic (@appujet)", // don't change this
             nodeResolver: (nodes) =>
                 [...nodes.values()]
