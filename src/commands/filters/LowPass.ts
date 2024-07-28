@@ -5,7 +5,7 @@ export default class LowPass extends Command {
         super(client, {
             name: "lowpass",
             description: {
-                content: "Toggle the lowpass filter on/off",
+                content: "cmd.lowpass.description",
                 examples: ["lowpass"],
                 usage: "lowpass <number>",
             },
@@ -22,7 +22,7 @@ export default class LowPass extends Command {
             permissions: {
                 dev: false,
                 client: ["SendMessages", "ViewChannel", "EmbedLinks"],
-                user: ["ManageGuild"],
+                user: [],
             },
             slashCommand: true,
             options: [],
@@ -30,29 +30,28 @@ export default class LowPass extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         const filterEnabled = player.filters.includes("lowpass");
 
         if (filterEnabled) {
-            player.player.setLowPass({}); //TODO
+            await player.player.setLowPass({ smoothing: 0 });
             player.filters = player.filters.filter((filter) => filter !== "lowpass");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Lowpass filter has been disabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.lowpass.messages.filter_disabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });
         } else {
-            player.player.setLowPass({ smoothing: 20 });
+            await player.player.setLowPass({ smoothing: 20 });
             player.filters.push("lowpass");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Lowpass filter has been enabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.lowpass.messages.filter_enabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });

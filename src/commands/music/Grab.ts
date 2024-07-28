@@ -5,12 +5,12 @@ export default class Grab extends Command {
         super(client, {
             name: "grab",
             description: {
-                content: "Grabs the current playing song",
+                content: "cmd.grab.description",
                 examples: ["grab"],
                 usage: "grab",
             },
             category: "music",
-            aliases: [],
+            aliases: ["gr"],
             cooldown: 3,
             args: false,
             player: {
@@ -28,32 +28,45 @@ export default class Grab extends Command {
             options: [],
         });
     }
+
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const embed = this.client.embed().setColor(this.client.color.main);
-        const player = client.queue.get(ctx.guild.id);
+        const player = client.queue.get(ctx.guild!.id);
+
+        if (!player?.current) {
+            return await ctx.sendMessage({
+                embeds: [this.client.embed().setColor(this.client.color.red).setDescription(ctx.locale("cmd.player.errors.no_song"))],
+            });
+        }
 
         const song = player.current;
 
-        try {
-            const dm = this.client
-                .embed()
-                .setTitle(`**${song.info.title}**`)
-                .setURL(song.info.uri)
-                .setThumbnail(song.info.artworkUrl)
-                .setDescription(
-                    `**Duration:** ${song.info.isStream ? "LIVE" : client.utils.formatTime(song.info.length)}\n` +
-                        `**Requested by:** ${song.info.requester}\n` +
-                        `**Link:** [Click here](${song.info.uri})`,
-                )
-                .setColor(this.client.color.main);
+        const songInfo = ctx.locale("cmd.grab.content", {
+            title: song.info.title,
+            uri: song.info.uri,
+            artworkUrl: song.info.artworkUrl,
+            length: song.info.isStream ? "LIVE" : client.utils.formatTime(song.info.length),
+            requester: song.info.requester,
+        });
 
-            await ctx.author.send({ embeds: [dm] });
+        try {
+            await ctx.author?.send({
+                embeds: [
+                    this.client
+                        .embed()
+                        .setTitle(`**${song.info.title}**`)
+                        .setURL(song.info.uri!)
+                        .setThumbnail(song.info.artworkUrl!)
+                        .setDescription(songInfo)
+                        .setColor(this.client.color.main),
+                ],
+            });
+
             return await ctx.sendMessage({
-                embeds: [embed.setDescription("I sent you a DM.").setColor(this.client.color.green)],
+                embeds: [this.client.embed().setDescription(ctx.locale("cmd.grab.check_dm")).setColor(this.client.color.green)],
             });
         } catch (_e) {
             return await ctx.sendMessage({
-                embeds: [embed.setDescription(`I couldn't send you a DM.`).setColor(this.client.color.red)],
+                embeds: [this.client.embed().setDescription(ctx.locale("cmd.grab.dm_failed")).setColor(this.client.color.red)],
             });
         }
     }

@@ -1,5 +1,4 @@
 import { ChannelType, type GuildMember, type VoiceState } from "discord.js";
-
 import { Event, type Lavamusic } from "../../structures/index.js";
 
 export default class VoiceStateUpdate extends Event {
@@ -24,10 +23,8 @@ export default class VoiceStateUpdate extends Event {
 
         const is247 = await this.client.db.get_247(guildId);
 
-        if (!newState.guild.members.cache.get(this.client.user.id)?.voice.channelId) {
-            if (!is247 && player) {
-                return player.destroy();
-            }
+        if (!(newState.guild.members.cache.get(this.client.user.id)?.voice.channelId || !is247) && player) {
+            return player.destroy();
         }
 
         if (
@@ -40,7 +37,7 @@ export default class VoiceStateUpdate extends Event {
                 newState.guild.members.me.permissions.has(["Connect", "Speak"]) ||
                 newState.channel.permissionsFor(newState.guild.members.me).has("MuteMembers")
             ) {
-                await newState.guild.members.me.voice.setSuppressed(false).catch(() => { });
+                await newState.guild.members.me.voice.setSuppressed(false).catch(() => {});
             }
         }
 
@@ -56,9 +53,7 @@ export default class VoiceStateUpdate extends Event {
 
         if (newState.id === this.client.user.id && newState.serverMute && !player.paused) {
             player.pause();
-        }
-
-        if (newState.id === this.client.user.id && !newState.serverMute && player.paused) {
+        } else if (newState.id === this.client.user.id && !newState.serverMute && player.paused) {
             player.pause();
         }
 

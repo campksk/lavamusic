@@ -5,7 +5,7 @@ export default class Tremolo extends Command {
         super(client, {
             name: "tremolo",
             description: {
-                content: "on/off the tremolo filter",
+                content: "cmd.tremolo.description",
                 examples: ["tremolo"],
                 usage: "tremolo",
             },
@@ -22,7 +22,7 @@ export default class Tremolo extends Command {
             permissions: {
                 dev: false,
                 client: ["SendMessages", "ViewChannel", "EmbedLinks"],
-                user: ["ManageGuild"],
+                user: [],
             },
             slashCommand: true,
             options: [],
@@ -30,32 +30,32 @@ export default class Tremolo extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         const tremoloEnabled = player.filters.includes("tremolo");
 
         if (tremoloEnabled) {
             player.player.setTremolo();
             player.filters.splice(player.filters.indexOf("tremolo"), 1);
-            return await ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Tremolo filter has been disabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.tremolo.messages.disabled"),
+                        color: this.client.color.main,
+                    },
+                ],
+            });
+        } else {
+            player.player.setTremolo({ depth: 0.75, frequency: 4 });
+            player.filters.push("tremolo");
+            await ctx.sendMessage({
+                embeds: [
+                    {
+                        description: ctx.locale("cmd.tremolo.messages.enabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });
         }
-        player.player.setTremolo({ depth: 0.75, frequency: 4 });
-        player.filters.push("tremolo");
-        return await ctx.sendMessage({
-            embeds: [
-                {
-                    description: "Tremolo filter has been enabled",
-                    color: client.color.main,
-                },
-            ],
-        });
     }
 }
 

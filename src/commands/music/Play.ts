@@ -1,5 +1,4 @@
 import { LoadType } from "shoukaku";
-
 import { Command, type Context, type Lavamusic } from "../../structures/index.js";
 
 export default class Play extends Command {
@@ -7,10 +6,12 @@ export default class Play extends Command {
         super(client, {
             name: "play",
             description: {
-                content: "Plays a song from YouTube or Spotify",
+                content: "cmd.play.description",
                 examples: [
-                    "play https://www.youtube.com/watch?v=QH2-TGUlwu4",
-                    "play https://open.spotify.com/track/6WrI0LAC5M1Rw2MnX2ZvEg",
+                    "play example",
+                    "play https://www.youtube.com/watch?v=example",
+                    "play https://open.spotify.com/track/example",
+                    "play http://www.example.com/example.mp3",
                 ],
                 usage: "play <song>",
             },
@@ -33,7 +34,7 @@ export default class Play extends Command {
             options: [
                 {
                     name: "song",
-                    description: "The song you want to play",
+                    description: "cmd.play.options.song",
                     type: 3,
                     required: true,
                     autocomplete: true,
@@ -41,26 +42,27 @@ export default class Play extends Command {
             ],
         });
     }
+
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
         const query = args.join(" ");
-        await ctx.sendDeferMessage("Loading...");
-        let player = client.queue.get(ctx.guild.id);
+        await ctx.sendDeferMessage(ctx.locale("cmd.play.loading"));
+        let player = client.queue.get(ctx.guild!.id);
         const vc = ctx.member as any;
         if (!player) player = await client.queue.create(ctx.guild, vc.voice.channel, ctx.channel);
-
         const res = await this.client.queue.search(query);
         const embed = this.client.embed();
+
         switch (res.loadType) {
             case LoadType.ERROR:
                 ctx.editMessage({
                     content: "",
-                    embeds: [embed.setColor(this.client.color.red).setDescription("There was an error while searching.")],
+                    embeds: [embed.setColor(this.client.color.red).setDescription(ctx.locale("cmd.play.errors.search_error"))],
                 });
                 break;
             case LoadType.EMPTY:
                 ctx.editMessage({
                     content: "",
-                    embeds: [embed.setColor(this.client.color.red).setDescription("There were no results found.")],
+                    embeds: [embed.setColor(this.client.color.red).setDescription(ctx.locale("cmd.play.errors.no_results"))],
                 });
                 break;
             case LoadType.TRACK: {
@@ -71,7 +73,7 @@ export default class Play extends Command {
                         embeds: [
                             embed
                                 .setColor(this.client.color.red)
-                                .setDescription(`The queue is too long. The maximum length is ${client.config.maxQueueSize} songs.`),
+                                .setDescription(ctx.locale("cmd.play.errors.queue_too_long", { maxQueueSize: client.config.maxQueueSize })),
                         ],
                     });
                 player.queue.push(track);
@@ -81,7 +83,7 @@ export default class Play extends Command {
                     embeds: [
                         embed
                             .setColor(this.client.color.main)
-                            .setDescription(`Added [${res.data.info.title}](${res.data.info.uri}) to the queue.`),
+                            .setDescription(ctx.locale("cmd.play.added_to_queue", { title: res.data.info.title, uri: res.data.info.uri })),
                     ],
                 });
                 break;
@@ -93,7 +95,9 @@ export default class Play extends Command {
                         embeds: [
                             embed
                                 .setColor(this.client.color.red)
-                                .setDescription(`The playlist is too long. The maximum length is ${client.config.maxPlaylistSize} songs.`),
+                                .setDescription(
+                                    ctx.locale("cmd.play.errors.playlist_too_long", { maxPlaylistSize: client.config.maxPlaylistSize }),
+                                ),
                         ],
                     });
                 for (const track of res.data.tracks) {
@@ -104,7 +108,9 @@ export default class Play extends Command {
                             embeds: [
                                 embed
                                     .setColor(this.client.color.red)
-                                    .setDescription(`The queue is too long. The maximum length is ${client.config.maxQueueSize} songs.`),
+                                    .setDescription(
+                                        ctx.locale("cmd.play.errors.queue_too_long", { maxQueueSize: client.config.maxQueueSize }),
+                                    ),
                             ],
                         });
                     player.queue.push(pl);
@@ -112,7 +118,11 @@ export default class Play extends Command {
                 await player.isPlaying();
                 ctx.editMessage({
                     content: "",
-                    embeds: [embed.setColor(this.client.color.main).setDescription(`Added ${res.data.tracks.length} songs to the queue.`)],
+                    embeds: [
+                        embed
+                            .setColor(this.client.color.main)
+                            .setDescription(ctx.locale("cmd.play.added_playlist_to_queue", { length: res.data.tracks.length })),
+                    ],
                 });
                 break;
             }
@@ -124,7 +134,7 @@ export default class Play extends Command {
                         embeds: [
                             embed
                                 .setColor(this.client.color.red)
-                                .setDescription(`The queue is too long. The maximum length is ${client.config.maxQueueSize} songs.`),
+                                .setDescription(ctx.locale("cmd.play.errors.queue_too_long", { maxQueueSize: client.config.maxQueueSize })),
                         ],
                     });
                 player.queue.push(track1);
@@ -134,7 +144,9 @@ export default class Play extends Command {
                     embeds: [
                         embed
                             .setColor(this.client.color.main)
-                            .setDescription(`Added [${res.data[0].info.title}](${res.data[0].info.uri}) to the queue.`),
+                            .setDescription(
+                                ctx.locale("cmd.play.added_to_queue", { title: res.data[0].info.title, uri: res.data[0].info.uri }),
+                            ),
                     ],
                 });
                 break;

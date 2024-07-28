@@ -51,7 +51,7 @@
 -   ![Mixer](https://img.shields.io/badge/Mixer-FFA500?style=plastic&logo=mixer&logoColor=white)
 -   ![http](https://img.shields.io/badge/http-FFA500?style=plastic&logo=http&logoColor=white)
 
-### 🔌 Plugin Sources: `(Require: LavaLink v4.1.x)`
+### 🔌 Plugin Sources: `(Require: LavaSrc and Skybot Plugin)`
 **Note: You need to install the plugins to use these sources**
 -   ![Spotify](https://img.shields.io/badge/Spotify-1ED760?style=plastic&logo=spotify&logoColor=white) ([Required Plugin][LavaSrc])
 -   ![Deezer](https://img.shields.io/badge/Deezer-FF0000?style=plastic&logo=deezer&logoColor=white) ([Required Plugin][LavaSrc])
@@ -75,8 +75,8 @@ To Setup a Lavalink server on Windows, Linux, or Replit, [Click Here.](https://g
 
 ## 🔧 Requirements
 Before starting with the installation, you need to have the following:
--   ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) [v18.17.1 or higher](https://nodejs.org/en/download/)
--   ![Lavalink](https://img.shields.io/badge/Lavalink-7289DA?style=for-the-badge&logo=discord&logoColor=white) [v4.0.x or higher](https://github.com/freyacodes/Lavalink)
+-   ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) [Recommend LTS or higher](https://nodejs.org/)
+-   ![Lavalink](https://img.shields.io/badge/Lavalink-7289DA?style=for-the-badge&logo=discord&logoColor=white) [v4 or higher](https://github.com/lavalink-devs/lavalink)
 
 ### Optional
 -   ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white) [Optional](https://www.mongodb.com/try/download/community) (For MongoDB database)
@@ -104,26 +104,27 @@ npm i
 Create a .env file in the root directory of your project with the following variables:
 or you can use the [.env.example](https://raw.githubusercontent.com/appujet/lavamusic/main/.env.example) file
 ```bash
-TOKEN = "" # Your bot token.
-CLIENT_ID = "" # Your bot's client ID (If this value is left blank, bots cannot be invited using /invite or /about commands.).
-PREFIX = "!" # Your prefix.
-OWNER_IDS = ["",""] # Your discord id (You can add multiple ids.).
-GUILD_ID = "" # Your server ID (If you want to use the for single server).
-PRODUCTION = "true" # true for production.
-BOT_STATUS = "online" # Your bot status (online, dnd, idle, invisible or offline).
-BOT_ACTIVITY_TYPE = 0 # Activity type is a number from 0 to 5. See more here: https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-types
-BOT_ACTIVITY = "Lavamusic" # Your bot activity
-DATABASE_URL = "" # Your database url (If you want to use sqlite, then you can leave it blank.).
-AUTO_NODE = "false" # true for auto node. It is gave from lavainfo-api (https://lavainfo-api.deno.dev).
-LAVALINK_URL = "localhost:2333" # Your Lavalink url (If auto node is true, then you can leave it blank)
-LAVALINK_AUTH = "youshallnotpass" # Your Lavalink password (If auto node is true, then you can leave it blank.).
-LAVALINK_NAME = "Lavamusic" # Your Lavalink name (If auto node is true, then you can leave it blank.).
-LAVALINK_SECURE = "false" # true for secure Lavalink (If auto node is true, then you can leave it blank.).
-SEARCH_ENGINE = "ytsearch" # ytsearch (YouTube Search), spsearch (Spotify Search), scsearch (SoundCloud Search) or ytmsearch (YouTube Music Search).
-MAX_PLAYLIST_SIZE = "100" # Max playlist size.
-MAX_QUEUE_SIZE = "100" # Max queue size.
-KEEP_ALIVE = "false" # true for keep alive in https://replit.com
-LOG_CHANNEL_ID = "" # If you enter this, you will be able to receive the status of Lavalink nodes and guild join/leave logs through the corresponding channel.
+TOKEN= "" # Your bot token.
+CLIENT_ID= "" # Your bot's client ID (If this value is left blank, bots cannot be invited using /invite or /about commands.).
+PREFIX= "!" # Your prefix.
+OWNER_IDS= ["",""] # Your discord id (You can add multiple ids.).
+GUILD_ID= "" # Your server ID (If you want to use the bot for a single server).
+PRODUCTION= "true" # true for production.
+TOPGG= "" # Your Top.gg API key. Obtain this from https://top.gg
+KEEP_ALIVE= "false" # true for keep alive in https://replit.com
+LOG_CHANNEL_ID= "" # If you enter this, you will be able to receive the status of Lavalink nodes and guild join/leave logs through the corresponding channel.
+LOG_COMMANDS_ID= "" # The channel ID where command usage logs will be sent.
+BOT_STATUS= "online" # Your bot status (online, dnd, idle, invisible or offline).
+BOT_ACTIVITY_TYPE= 0 # Activity type is a number from 0 to 5. See more here: https://discord.com/developers/docs/topics/gateway-events#activity-object-activity-types
+BOT_ACTIVITY= "Lavamusic" # Your bot activity.
+DATABASE_URL= "" # Your database url (If you want to use sqlite, then you can leave it blank.).
+AUTO_NODE= "false" # true for auto node. It is given from lavainfo-api (https://lavainfo-api.deno.dev).
+LAVALINK_URL= "localhost:2333" # Your Lavalink url (If auto node is true, then you can leave it blank).
+LAVALINK_AUTH= "youshallnotpass" # Your Lavalink password (If auto node is true, then you can leave it blank.).
+LAVALINK_NAME= "Lavamusic" # Your Lavalink name (If auto node is true, then you can leave it blank.).
+LAVALINK_SECURE= "false" # true for secure Lavalink (If auto node is true, then you can leave it blank.).
+MAX_PLAYLIST_SIZE= "100" # Max playlist size.
+MAX_QUEUE_SIZE= "100" # Max queue size.
 ```
 
 5. Generate the Prisma client:

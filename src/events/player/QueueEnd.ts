@@ -1,5 +1,4 @@
 import type { Player } from "shoukaku";
-
 import type { Song } from "../../structures/Dispatcher.js";
 import { type Dispatcher, Event, type Lavamusic } from "../../structures/index.js";
 import { updateSetup } from "../../utils/SetupSystem.js";

@@ -1,20 +1,17 @@
-//TODO
-
 import { LoadType } from "shoukaku";
-
 import { Command, type Context, type Lavamusic } from "../../structures/index.js";
 
-export default class AddPlaylist extends Command {
+export default class AddSong extends Command {
     constructor(client: Lavamusic) {
         super(client, {
-            name: "add",
+            name: "addsong",
             description: {
-                content: "Adds a song to the playlist",
-                examples: ["add <playlist> <song>"],
-                usage: "add <playlist> <song>",
+                content: "cmd.addsong.description",
+                examples: ["addsong <playlist> <song>"],
+                usage: "addsong <playlist> <song>",
             },
             category: "playlist",
-            aliases: ["add"],
+            aliases: ["as"],
             cooldown: 3,
             args: true,
             player: {
@@ -32,13 +29,13 @@ export default class AddPlaylist extends Command {
             options: [
                 {
                     name: "playlist",
-                    description: "The playlist you want to add",
+                    description: "cmd.addsong.options.playlist",
                     type: 3,
                     required: true,
                 },
                 {
                     name: "song",
-                    description: "The song you want to add",
+                    description: "cmd.addsong.options.song",
                     type: 3,
                     required: true,
                 },
@@ -51,34 +48,47 @@ export default class AddPlaylist extends Command {
         const song = args.join(" ");
 
         if (!playlist) {
-            const errorMessage = this.client.embed().setDescription("Please provide a playlist").setColor(this.client.color.red);
+            const errorMessage = this.client
+                .embed()
+                .setDescription(ctx.locale("cmd.addsong.messages.no_playlist"))
+                .setColor(this.client.color.red);
             return await ctx.sendMessage({ embeds: [errorMessage] });
         }
 
         if (!song) {
-            const errorMessage = this.client.embed().setDescription("Please provide a song").setColor(this.client.color.red);
+            const errorMessage = this.client
+                .embed()
+                .setDescription(ctx.locale("cmd.addsong.messages.no_song"))
+                .setColor(this.client.color.red);
             return await ctx.sendMessage({ embeds: [errorMessage] });
         }
 
         const playlistData = await client.db.getPlaylist(ctx.author.id, playlist);
 
         if (!playlistData) {
-            const playlistNotFoundError = this.client.embed().setDescription("That playlist doesn't exist").setColor(this.client.color.red);
+            const playlistNotFoundError = this.client
+                .embed()
+                .setDescription(ctx.locale("cmd.addsong.messages.playlist_not_found"))
+                .setColor(this.client.color.red);
             return await ctx.sendMessage({ embeds: [playlistNotFoundError] });
         }
 
         const res = await client.queue.search(song);
         if (!res) {
-            const noSongsFoundError = this.client.embed().setDescription("No songs found").setColor(this.client.color.red);
+            const noSongsFoundError = this.client
+                .embed()
+                .setDescription(ctx.locale("cmd.addsong.messages.no_songs_found"))
+                .setColor(this.client.color.red);
             return await ctx.sendMessage({ embeds: [noSongsFoundError] });
         }
+
         let trackStrings: any;
         let count: number;
         if (res.loadType === LoadType.PLAYLIST) {
-            trackStrings = res.data.tracks.map((track) => track);
+            trackStrings = res.data.tracks;
             count = res.data.tracks.length;
-        } else {
-            trackStrings = [res.data[0]];
+        } else if (res.loadType === LoadType.TRACK) {
+            trackStrings = [res.data];
             count = 1;
         }
 
@@ -86,9 +96,9 @@ export default class AddPlaylist extends Command {
 
         const successMessage = this.client
             .embed()
-            .setDescription(`Added ${count} song(s) to ${playlistData.name}`)
+            .setDescription(ctx.locale("cmd.addsong.messages.added", { count, playlist: playlistData.name }))
             .setColor(this.client.color.green);
-        ctx.sendMessage({ embeds: [successMessage] });
+        await ctx.sendMessage({ embeds: [successMessage] });
     }
 }
 

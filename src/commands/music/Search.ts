@@ -1,8 +1,5 @@
-//TODO
-
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { LoadType } from "shoukaku";
-
 import type { Song } from "../../structures/Dispatcher.js";
 import { Command, type Context, type Lavamusic } from "../../structures/index.js";
 
@@ -11,9 +8,9 @@ export default class Search extends Command {
         super(client, {
             name: "search",
             description: {
-                content: "Searches for a song",
-                examples: ["search", "search <song>"],
-                usage: "search",
+                content: "cmd.search.description",
+                examples: ["search example"],
+                usage: "search <song>",
             },
             category: "music",
             aliases: ["sc"],
@@ -34,16 +31,17 @@ export default class Search extends Command {
             options: [
                 {
                     name: "song",
-                    description: "The song you want to search",
+                    description: "cmd.search.options.song",
                     type: 3,
                     required: true,
                 },
             ],
         });
     }
+
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
         const embed = this.client.embed().setColor(this.client.color.main);
-        let player = client.queue.get(ctx.guild.id);
+        let player = client.queue.get(ctx.guild!.id);
         const query = args.join(" ");
         if (!player) {
             const vc = ctx.member as any;
@@ -55,10 +53,11 @@ export default class Search extends Command {
             );
         }
         const res = await this.client.queue.search(query);
-        if (!res)
+        if (!res) {
             return await ctx.sendMessage({
-                embeds: [embed.setDescription("**No results found**").setColor(this.client.color.red)],
+                embeds: [embed.setDescription(ctx.locale("cmd.search.errors.no_results")).setColor(this.client.color.red)],
             });
+        }
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder().setCustomId("1").setLabel("1").setStyle(ButtonStyle.Primary),
             new ButtonBuilder().setCustomId("2").setLabel("2").setStyle(ButtonStyle.Primary),
@@ -69,12 +68,12 @@ export default class Search extends Command {
         switch (res.loadType) {
             case LoadType.ERROR:
                 ctx.sendMessage({
-                    embeds: [embed.setColor(this.client.color.red).setDescription("There was an error while searching.")],
+                    embeds: [embed.setColor(this.client.color.red).setDescription(ctx.locale("cmd.search.errors.search_error"))],
                 });
                 break;
             case LoadType.EMPTY:
                 ctx.sendMessage({
-                    embeds: [embed.setColor(this.client.color.red).setDescription("There were no results found.")],
+                    embeds: [embed.setColor(this.client.color.red).setDescription(ctx.locale("cmd.search.errors.no_results"))],
                 });
                 break;
             case LoadType.SEARCH: {
@@ -103,12 +102,13 @@ export default class Search extends Command {
             player.queue.push(song);
             player.isPlaying();
             await ctx.editMessage({
-                embeds: [embed.setDescription(`Added [${song.info.title}](${song.info.uri}) to the queue`)],
+                embeds: [
+                    embed.setDescription(ctx.locale("cmd.search.messages.added_to_queue", { title: song.info.title, uri: song.info.uri })),
+                ],
                 components: [],
             });
             return collector.stop();
         });
-
         collector.on("end", async () => {
             await ctx.editMessage({ components: [] });
         });

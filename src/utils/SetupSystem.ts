@@ -1,16 +1,13 @@
 import { type ColorResolvable, EmbedBuilder, type Message, type TextChannel } from "discord.js";
 import { LoadType } from "shoukaku";
-
 import type { Song } from "../structures/Dispatcher.js";
 import type { Dispatcher, Lavamusic } from "../structures/index.js";
 import { getButtons } from "./Buttons.js";
 
 function neb(embed: EmbedBuilder, player: Dispatcher, client: Lavamusic): EmbedBuilder {
     if (!player?.current?.info) return embed;
-
     const iconUrl = client.config.icons[player.current.info.sourceName] || client.user.displayAvatarURL({ extension: "png" });
     const icon = player.current.info.artworkUrl || client.config.links.img;
-
     return embed
         .setAuthor({ name: "Now Playing", iconURL: iconUrl })
         .setDescription(
@@ -22,12 +19,10 @@ function neb(embed: EmbedBuilder, player: Dispatcher, client: Lavamusic): EmbedB
         .setColor(client.color.main);
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
 async function setupStart(client: Lavamusic, query: string, player: Dispatcher, message: Message): Promise<void> {
     let m: Message;
     const embed = client.embed();
     const n = client.embed().setColor(client.color.main);
-
     const data = await client.db.getSetup(message.guild.id);
     try {
         if (data) m = await message.channel.messages.fetch({ message: data.messageId, cache: true });
@@ -43,26 +38,17 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                         .send({
                             embeds: [embed.setColor(client.color.red).setDescription("There was an error while searching.")],
                         })
-                        .then((msg) => {
-                            setTimeout(() => {
-                                msg.delete();
-                            }, 5000);
-                        });
+                        .then((msg) => setTimeout(() => msg.delete(), 5000));
                     break;
                 case LoadType.EMPTY:
                     await message.channel
                         .send({
                             embeds: [embed.setColor(client.color.red).setDescription("There were no results found.")],
                         })
-                        .then((msg) => {
-                            setTimeout(() => {
-                                msg.delete();
-                            }, 5000);
-                        });
+                        .then((msg) => setTimeout(() => msg.delete(), 5000));
                     break;
                 case LoadType.TRACK: {
                     const track = player.buildTrack(res.data, message.author);
-
                     if (player.queue.length > client.config.maxQueueSize) {
                         await message.channel
                             .send({
@@ -74,11 +60,7 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                         ),
                                 ],
                             })
-                            .then((msg) => {
-                                setTimeout(() => {
-                                    msg.delete();
-                                }, 5000);
-                            });
+                            .then((msg) => setTimeout(() => msg.delete(), 5000));
                         return;
                     }
                     player.queue.push(track);
@@ -91,13 +73,9 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                     .setDescription(`Added [${res.data.info.title}](${res.data.info.uri}) to the queue.`),
                             ],
                         })
-                        .then((msg) => {
-                            setTimeout(() => {
-                                msg.delete();
-                            }, 5000);
-                        });
+                        .then((msg) => setTimeout(() => msg.delete(), 5000));
                     neb(n, player, client);
-                    if (m) await m.edit({ embeds: [n] }).catch(() => {});
+                    await m.edit({ embeds: [n] }).catch(() => {});
                     break;
                 }
                 case LoadType.PLAYLIST:
@@ -112,11 +90,7 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                         ),
                                 ],
                             })
-                            .then((msg) => {
-                                setTimeout(() => {
-                                    msg.delete();
-                                }, 5000);
-                            });
+                            .then((msg) => setTimeout(() => msg.delete(), 5000));
                         return;
                     }
                     for (const track of res.data.tracks) {
@@ -132,11 +106,7 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                             ),
                                     ],
                                 })
-                                .then((msg) => {
-                                    setTimeout(() => {
-                                        msg.delete();
-                                    }, 5000);
-                                });
+                                .then((msg) => setTimeout(() => msg.delete(), 5000));
                             return;
                         }
                         player.queue.push(pl);
@@ -150,13 +120,9 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                     .setDescription(`Added [${res.data.tracks.length}](${res.data.tracks[0].info.uri}) to the queue.`),
                             ],
                         })
-                        .then((msg) => {
-                            setTimeout(() => {
-                                msg.delete();
-                            }, 5000);
-                        });
+                        .then((msg) => setTimeout(() => msg.delete(), 5000));
                     neb(n, player, client);
-                    if (m) await m.edit({ embeds: [n] }).catch(() => {});
+                    await m.edit({ embeds: [n] }).catch(() => {});
                     break;
                 case LoadType.SEARCH: {
                     const track = player.buildTrack(res.data[0], message.author);
@@ -171,11 +137,7 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                         ),
                                 ],
                             })
-                            .then((msg) => {
-                                setTimeout(() => {
-                                    msg.delete();
-                                }, 5000);
-                            });
+                            .then((msg) => setTimeout(() => msg.delete(), 5000));
                         return;
                     }
                     player.queue.push(track);
@@ -188,13 +150,9 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
                                     .setDescription(`Added [${res.data[0].info.title}](${res.data[0].info.uri}) to the queue.`),
                             ],
                         })
-                        .then((msg) => {
-                            setTimeout(() => {
-                                msg.delete();
-                            }, 5000);
-                        });
+                        .then((msg) => setTimeout(() => msg.delete(), 5000));
                     neb(n, player, client);
-                    if (m) await m.edit({ embeds: [n] }).catch(() => {});
+                    await m.edit({ embeds: [n] }).catch(() => {});
                     break;
                 }
             }
@@ -203,6 +161,7 @@ async function setupStart(client: Lavamusic, query: string, player: Dispatcher, 
         }
     }
 }
+
 async function trackStart(msgId: any, channel: TextChannel, player: Dispatcher, track: Song, client: Lavamusic): Promise<void> {
     const icon = player.current ? player.current.info.artworkUrl : client.config.links.img;
     let m: Message;
@@ -212,8 +171,7 @@ async function trackStart(msgId: any, channel: TextChannel, player: Dispatcher, 
         client.logger.error(error);
     }
     if (m) {
-        let iconUrl = client.config.icons[player.current.info.sourceName];
-        if (!iconUrl) iconUrl = client.user.displayAvatarURL({ extension: "png" });
+        const iconUrl = client.config.icons[player.current.info.sourceName] || client.user.displayAvatarURL({ extension: "png" });
         const embed = client
             .embed()
             .setAuthor({ name: "Now Playing", iconURL: iconUrl })
@@ -227,17 +185,14 @@ async function trackStart(msgId: any, channel: TextChannel, player: Dispatcher, 
         await m
             .edit({
                 embeds: [embed],
-                components: getButtons(player).map((b) => {
-                    b.components.forEach((c) => {
-                        c.setDisabled(!player?.current);
-                    });
+                components: getButtons(player, client).map((b) => {
+                    b.components.forEach((c) => c.setDisabled(!player?.current));
                     return b;
                 }),
             })
             .catch(() => {});
     } else {
-        let iconUrl = client.config.icons[player.current.info.sourceName];
-        if (!iconUrl) iconUrl = client.user.displayAvatarURL({ extension: "png" });
+        const iconUrl = client.config.icons[player.current.info.sourceName] || client.user.displayAvatarURL({ extension: "png" });
         const embed = client
             .embed()
             .setColor(client.color.main)
@@ -251,10 +206,8 @@ async function trackStart(msgId: any, channel: TextChannel, player: Dispatcher, 
         await channel
             .send({
                 embeds: [embed],
-                components: getButtons(player).map((b) => {
-                    b.components.forEach((c) => {
-                        c.setDisabled(!player?.current);
-                    });
+                components: getButtons(player, client).map((b) => {
+                    b.components.forEach((c) => c.setDisabled(!player?.current));
                     return b;
                 }),
             })
@@ -280,8 +233,7 @@ async function updateSetup(client: Lavamusic, guild: any): Promise<void> {
     if (m) {
         const player = client.queue.get(guild.id);
         if (player?.current) {
-            let iconUrl = client.config.icons[player.current.info.sourceName];
-            if (!iconUrl) iconUrl = client.user.displayAvatarURL({ extension: "png" });
+            const iconUrl = client.config.icons[player.current.info.sourceName] || client.user.displayAvatarURL({ extension: "png" });
             const embed = client
                 .embed()
                 .setAuthor({ name: "Now Playing", iconURL: iconUrl })
@@ -295,10 +247,8 @@ async function updateSetup(client: Lavamusic, guild: any): Promise<void> {
             await m
                 .edit({
                     embeds: [embed],
-                    components: getButtons(player).map((b) => {
-                        b.components.forEach((c) => {
-                            c.setDisabled(!player?.current);
-                        });
+                    components: getButtons(player, client).map((b) => {
+                        b.components.forEach((c) => c.setDisabled(!player?.current));
                         return b;
                     }),
                 })
@@ -311,15 +261,13 @@ async function updateSetup(client: Lavamusic, guild: any): Promise<void> {
                     name: client.user.username,
                     iconURL: client.user.displayAvatarURL({ extension: "png" }),
                 })
-                .setDescription("Nothing playing right now")
+                .setDescription("Nothing playing right now.")
                 .setImage(client.config.links.img);
             await m
                 .edit({
                     embeds: [embed],
-                    components: getButtons(player).map((b) => {
-                        b.components.forEach((c) => {
-                            c.setDisabled(true);
-                        });
+                    components: getButtons(player, client).map((b) => {
+                        b.components.forEach((c) => c.setDisabled(true));
                         return b;
                     }),
                 })
@@ -346,11 +294,9 @@ async function buttonReply(int: any, args: string, color: ColorResolvable): Prom
 async function oops(channel: TextChannel, args: string): Promise<void> {
     try {
         const embed1 = new EmbedBuilder().setColor("Red").setDescription(`${args}`);
-
         const m = await channel.send({
             embeds: [embed1],
         });
-
         setTimeout(async () => await m.delete().catch(() => {}), 12000);
     } catch (e) {
         return console.error(e);

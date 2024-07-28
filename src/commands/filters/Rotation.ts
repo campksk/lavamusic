@@ -5,7 +5,7 @@ export default class Rotation extends Command {
         super(client, {
             name: "rotation",
             description: {
-                content: "on/off rotation filter",
+                content: "cmd.rotation.description",
                 examples: ["rotation"],
                 usage: "rotation",
             },
@@ -22,36 +22,34 @@ export default class Rotation extends Command {
             permissions: {
                 dev: false,
                 client: ["SendMessages", "ViewChannel", "EmbedLinks"],
-                user: ["ManageGuild"],
+                user: [],
             },
             slashCommand: true,
             options: [],
         });
     }
 
-    // biome-ignore lint/suspicious/useAwait: <explanation>
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         if (player.filters.includes("rotation")) {
             player.player.setRotation();
-            player.filters.splice(player.filters.indexOf("rotation"), 1);
-            ctx.sendMessage({
+            player.filters = player.filters.filter((filter) => filter !== "rotation");
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Rotation filter has been disabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.rotation.messages.disabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });
         } else {
             player.player.setRotation({ rotationHz: 0 });
             player.filters.push("rotation");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Rotation filter has been enabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.rotation.messages.enabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });

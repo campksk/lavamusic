@@ -5,12 +5,12 @@ export default class Skipto extends Command {
         super(client, {
             name: "skipto",
             description: {
-                content: "Skips to a specific song in the queue",
+                content: "cmd.skipto.description",
                 examples: ["skipto 3"],
                 usage: "skipto <number>",
             },
             category: "music",
-            aliases: ["st"],
+            aliases: ["skt"],
             cooldown: 3,
             args: true,
             player: {
@@ -28,7 +28,7 @@ export default class Skipto extends Command {
             options: [
                 {
                     name: "number",
-                    description: "The number of the song you want to skip to",
+                    description: "cmd.skipto.options.number",
                     type: 4,
                     required: true,
                 },
@@ -37,19 +37,19 @@ export default class Skipto extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
+        const player = client.queue.get(ctx.guild!.id);
         const embed = this.client.embed();
+        const num = Number(args[0]);
 
-        if (!player.queue.length || isNaN(Number(args[0])) || Number(args[0]) > player.queue.length || Number(args[0]) < 1) {
+        if (!player.queue.length || isNaN(num) || num > player.queue.length || num < 1) {
             return await ctx.sendMessage({
-                embeds: [embed.setColor(this.client.color.red).setDescription("Please provide a valid number.")],
+                embeds: [embed.setColor(this.client.color.red).setDescription(ctx.locale("cmd.skipto.errors.invalid_number"))],
             });
         }
 
-        player.skip(Number(args[0]));
-
+        player.skip(num);
         return await ctx.sendMessage({
-            embeds: [embed.setColor(this.client.color.main).setDescription(`Skipped to song number ${args[0]}`)],
+            embeds: [embed.setColor(this.client.color.main).setDescription(ctx.locale("cmd.skipto.messages.skipped_to", { number: num }))],
         });
     }
 }

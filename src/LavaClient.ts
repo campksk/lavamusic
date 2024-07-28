@@ -1,5 +1,4 @@
 import { type ClientOptions, GatewayIntentBits } from "discord.js";
-
 import config from "./config.js";
 import Lavamusic from "./structures/Lavamusic.js";
 

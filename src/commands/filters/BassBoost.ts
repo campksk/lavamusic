@@ -5,7 +5,7 @@ export default class BassBoost extends Command {
         super(client, {
             name: "bassboost",
             description: {
-                content: "on/off bassboost filter",
+                content: "cmd.bassboost.description",
                 examples: ["bassboost"],
                 usage: "bassboost",
             },
@@ -22,7 +22,7 @@ export default class BassBoost extends Command {
             permissions: {
                 dev: false,
                 client: ["SendMessages", "ViewChannel", "EmbedLinks"],
-                user: ["ManageGuild"],
+                user: [],
             },
             slashCommand: true,
             options: [],
@@ -30,34 +30,33 @@ export default class BassBoost extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         const filterEnabled = player.filters.includes("bassboost");
 
         if (filterEnabled) {
-            player.player.setEqualizer([]);
+            await player.player.setEqualizer([]);
             player.filters = player.filters.filter((filter) => filter !== "bassboost");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Bassboost filter has been disabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.bassboost.messages.filter_disabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });
         } else {
-            player.player.setEqualizer([
+            await player.player.setEqualizer([
                 { band: 0, gain: 0.34 },
                 { band: 1, gain: 0.34 },
                 { band: 2, gain: 0.34 },
                 { band: 3, gain: 0.34 },
             ]);
             player.filters.push("bassboost");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "Bassboost filter has been enabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.bassboost.messages.filter_enabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });

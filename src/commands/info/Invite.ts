@@ -1,5 +1,4 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-
 import { Command, type Context, type Lavamusic } from "../../structures/index.js";
 
 export default class Invite extends Command {
@@ -7,14 +6,15 @@ export default class Invite extends Command {
         super(client, {
             name: "invite",
             description: {
-                content: "Sends the bot's invite link",
+                content: "cmd.invite.description",
                 examples: ["invite"],
                 usage: "invite",
             },
             category: "info",
-            aliases: ["inv"],
+            aliases: ["iv"],
             cooldown: 3,
             args: false,
+            vote: false,
             player: {
                 voice: false,
                 dj: false,
@@ -35,20 +35,15 @@ export default class Invite extends Command {
         const embed = this.client.embed();
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
-                .setLabel("Invite")
+                .setLabel(ctx.locale("buttons.invite"))
                 .setStyle(ButtonStyle.Link)
                 .setURL(
                     `https://discord.com/api/oauth2/authorize?client_id=${client.config.clientId}&permissions=8&scope=bot%20applications.commands`,
                 ),
-            new ButtonBuilder().setLabel("My Server").setStyle(ButtonStyle.Link).setURL("https://discord.gg/STXurwnZD5"),
+            new ButtonBuilder().setLabel(ctx.locale("buttons.support")).setStyle(ButtonStyle.Link).setURL("https://discord.gg/STXurwnZD5"),
         );
-
         return await ctx.sendMessage({
-            embeds: [
-                embed
-                    .setColor(this.client.color.main)
-                    .setDescription("You can invite me by clicking the button below. Any bugs or outages? Join the support server!"),
-            ],
+            embeds: [embed.setColor(this.client.color.main).setDescription(ctx.locale("cmd.invite.content"))],
             components: [row],
         });
     }

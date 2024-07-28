@@ -24,12 +24,11 @@ export default class NodeConnect extends Event {
                 if (!guild) return;
 
                 const channel = guild.channels.cache.get(main.textId);
-                if (!channel) return;
-
                 const vc = guild.channels.cache.get(main.voiceId);
-                if (!vc) return;
 
-                await this.client.queue.create(guild, vc, channel);
+                if (channel && vc) {
+                    await this.client.queue.create(guild, vc, channel);
+                }
             }, index * 1000);
         });
 

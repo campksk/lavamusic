@@ -5,12 +5,12 @@ export default class Reset extends Command {
         super(client, {
             name: "reset",
             description: {
-                content: "Resets the active filters",
+                content: "cmd.reset.description",
                 examples: ["reset"],
                 usage: "reset",
             },
             category: "filters",
-            aliases: ["reset"],
+            aliases: ["rs"],
             cooldown: 3,
             args: false,
             player: {
@@ -22,7 +22,7 @@ export default class Reset extends Command {
             permissions: {
                 dev: false,
                 client: ["SendMessages", "ViewChannel", "EmbedLinks"],
-                user: ["ManageGuild"],
+                user: [],
             },
             slashCommand: true,
             options: [],
@@ -30,16 +30,14 @@ export default class Reset extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         player.player.clearFilters();
         player.filters = [];
-
-        return await ctx.sendMessage({
+        await ctx.sendMessage({
             embeds: [
                 {
-                    description: "Filters have been reset",
-                    color: client.color.main,
+                    description: ctx.locale("cmd.reset.messages.filters_reset"),
+                    color: this.client.color.main,
                 },
             ],
         });

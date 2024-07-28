@@ -4,8 +4,20 @@ import { ShardingManager } from "discord.js";
 
 import config from "./config.js";
 import Logger from "./structures/Logger.js";
+import { ThemeSelector } from "./utils/ThemeSelector.js";
 
 const logger = new Logger();
+
+const theme = new ThemeSelector();
+
+/**
+ * Sets the console window title.
+ * @param title - The new title for the console window.
+ */
+function setConsoleTitle(title: string): void {
+    // Write the escape sequence to change the console title
+    process.stdout.write(`\x1b]0;${title}\x07`);
+}
 
 async function main(): Promise<void> {
     try {
@@ -13,11 +25,12 @@ async function main(): Promise<void> {
             logger.error("LavaLogo.txt file is missing");
             process.exit(1);
         }
-
+        console.clear();
+        // Set a custom title for the console window
+        setConsoleTitle("Lavamusic");
         const logFile = fs.readFileSync("./src/utils/LavaLogo.txt", "utf-8");
         // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-        console.log("\x1b[35m%s\x1b[0m", logFile);
-
+        console.log(theme.purpleNeon(logFile));
         const manager = new ShardingManager("./dist/LavaClient.js", {
             respawn: true,
             token: config.token,

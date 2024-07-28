@@ -1,6 +1,5 @@
 import type { Guild } from "discord.js";
 import type { LavalinkResponse, Node } from "shoukaku";
-
 import { Dispatcher, type Lavamusic } from "./index.js";
 
 export class Queue extends Map<string, Dispatcher> {
@@ -34,8 +33,13 @@ export class Queue extends Map<string, Dispatcher> {
 
         let dispatcher = this.get(guild.id);
         if (!dispatcher) {
+            let player = this.client.shoukaku.players.get(guild.id);
+            if (player) {
+                this.client.shoukaku.leaveVoiceChannel(guild.id);
+                player.destroy();
+            }
             const node = givenNode ?? this.client.shoukaku.options.nodeResolver(this.client.shoukaku.nodes);
-            const player = await this.client.shoukaku.joinVoiceChannel({
+            player = await this.client.shoukaku.joinVoiceChannel({
                 guildId: guild.id,
                 channelId: voice.id,
                 shardId: guild.shardId,
@@ -53,7 +57,6 @@ export class Queue extends Map<string, Dispatcher> {
             this.set(guild.id, dispatcher);
             this.client.shoukaku.emit("playerCreate", dispatcher.player);
         }
-
         return dispatcher;
     }
 

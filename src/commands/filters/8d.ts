@@ -5,7 +5,7 @@ export default class _8d extends Command {
         super(client, {
             name: "8d",
             description: {
-                content: "on/off 8d filter",
+                content: "cmd.8d.description",
                 examples: ["8d"],
                 usage: "8d",
             },
@@ -30,30 +30,29 @@ export default class _8d extends Command {
     }
 
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
-        const player = client.queue.get(ctx.guild.id);
-
+        const player = client.queue.get(ctx.guild!.id);
         const filterEnabled = player.filters.includes("8D");
         const rotationConfig = filterEnabled ? {} : { rotationHz: 0.2 };
 
-        player.player.setRotation(rotationConfig);
+        await player.player.setRotation(rotationConfig);
 
         if (filterEnabled) {
             player.filters = player.filters.filter((filter) => filter !== "8D");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "8D filter has been disabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.8d.messages.filter_disabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });
         } else {
             player.filters.push("8D");
-            ctx.sendMessage({
+            await ctx.sendMessage({
                 embeds: [
                     {
-                        description: "8D filter has been enabled",
-                        color: client.color.main,
+                        description: ctx.locale("cmd.8d.messages.filter_enabled"),
+                        color: this.client.color.main,
                     },
                 ],
             });

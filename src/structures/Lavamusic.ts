@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Api } from "@top-gg/sdk";
 import {
     ApplicationCommandType,
     Client,
@@ -13,13 +14,14 @@ import {
     type RESTPostAPIChatInputApplicationCommandsJSONBody,
     Routes,
 } from "discord.js";
-
+import { Locale } from "discord.js";
 import config from "../config.js";
 import ServerData from "../database/server.js";
 import loadPlugins from "../plugin/index.js";
 import { Utils } from "../utils/Utils.js";
+import { T, i18n, initI18n, localization } from "./I18n.js";
 import Logger from "./Logger.js";
-import { Queue, ShoukakuClient } from "./index.js";
+import { type Command, Queue, ShoukakuClient } from "./index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,9 +32,11 @@ export default class Lavamusic extends Client {
     public cooldown: Collection<string, any> = new Collection();
     public config = config;
     public logger: Logger = new Logger();
+    public readonly emoji = config.emoji;
     public readonly color = config.color;
     private body: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
     public shoukaku: ShoukakuClient;
+    public topGG: Api;
     public utils = Utils;
     public queue = new Queue(this);
 
@@ -41,14 +45,17 @@ export default class Lavamusic extends Client {
     }
 
     public async start(token: string): Promise<void> {
+        initI18n();
         const nodes = this.config.autoNode ? await this.getNodes() : this.config.lavalink;
         this.shoukaku = new ShoukakuClient(this, nodes);
-        this.loadCommands();
+        this.topGG = new Api(this.config.topGG);
+        await this.loadCommands();
         this.logger.info("Successfully loaded commands!");
-        this.loadEvents();
+        await this.loadEvents();
         this.logger.info("Successfully loaded events!");
         loadPlugins(this);
         await this.login(token);
+
         this.on(Events.InteractionCreate, async (interaction: Interaction<"cached">) => {
             if (interaction.isButton()) {
                 const setup = await this.db.getSetup(interaction.guildId);
@@ -60,42 +67,100 @@ export default class Lavamusic extends Client {
     }
 
     private async loadCommands(): Promise<void> {
-        const commandsPath = fs.readdirSync(path.join(__dirname, "../commands"));
-        for (const dir of commandsPath) {
-            const commandFiles = fs.readdirSync(path.join(__dirname, `../commands/${dir}`)).filter((file) => file.endsWith(".js"));
+        const commandsPath = path.join(__dirname, "../commands");
+        const commandDirs = fs.readdirSync(commandsPath);
+
+        for (const dir of commandDirs) {
+            const commandFiles = fs.readdirSync(path.join(commandsPath, dir)).filter((file) => file.endsWith(".js"));
+
             for (const file of commandFiles) {
-                const cmd = (await import(`../commands/${dir}/${file}`)).default;
-                const command = new cmd(this);
+                const cmdModule = await import(`../commands/${dir}/${file}`);
+                const command: Command = new cmdModule.default(this);
                 command.category = dir;
+
                 this.commands.set(command.name, command);
-                if (command.aliases.length !== 0) {
-                    command.aliases.forEach((alias: any) => {
-                        this.aliases.set(alias, command.name);
-                    });
-                }
+                command.aliases.forEach((alias: string) => {
+                    this.aliases.set(alias, command.name);
+                });
+
                 if (command.slashCommand) {
-                    const data = {
+                    const data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
                         name: command.name,
-                        description: command.description.content,
+                        description: T(Locale.EnglishUS, command.description.content),
                         type: ApplicationCommandType.ChatInput,
-                        options: command.options ?? null,
-                        name_localizations: command.nameLocalizations ?? null,
-                        description_localizations: command.descriptionLocalizations ?? null,
+                        options: command.options || [],
                         default_member_permissions:
-                            command.permissions.user.length > 0 ? PermissionsBitField.resolve(command.permissions.user).toString() : null,
+                            Array.isArray(command.permissions.user) && command.permissions.user.length > 0
+                                ? PermissionsBitField.resolve(command.permissions.user as any).toString()
+                                : null,
+                        name_localizations: null,
+                        description_localizations: null,
                     };
-                    this.body.push(JSON.parse(JSON.stringify(data)));
+                    // command description and name localizations
+                    const localizations = [];
+                    i18n.getLocales().map((locale) => {
+                        localizations.push(localization(locale, command.name, command.description.content));
+                    });
+                    for (const localization of localizations) {
+                        const [language, name] = localization.name;
+                        const [language2, description] = localization.description;
+                        data.name_localizations = { ...data.name_localizations, [language]: name };
+                        data.description_localizations = { ...data.description_localizations, [language2]: description };
+                    }
+
+                    // command options localizations
+                    if (command.options.length > 0) {
+                        command.options.map((option) => {
+                            // command options name and description localizations
+                            const optionsLocalizations = [];
+                            i18n.getLocales().map((locale) => {
+                                optionsLocalizations.push(localization(locale, option.name, option.description));
+                            });
+                            for (const localization of optionsLocalizations) {
+                                const [language, name] = localization.name;
+                                const [language2, description] = localization.description;
+                                option.name_localizations = { ...option.name_localizations, [language]: name };
+                                option.description_localizations = { ...option.description_localizations, [language2]: description };
+                            }
+                            // command options description localization
+                            option.description = T(Locale.EnglishUS, option.description);
+                        });
+
+                        // subcommand options localizations
+                        data.options.map((option) => {
+
+                            if ("options" in option && option.options.length > 0) {
+                                option.options.map((subOption) => {
+                                    // subcommand options name and description localizations
+                                    const subOptionsLocalizations = [];
+                                    i18n.getLocales().map((locale) => {
+                                        subOptionsLocalizations.push(localization(locale, subOption.name, subOption.description));
+                                    });
+                                    for (const localization of subOptionsLocalizations) {
+                                        const [language, name] = localization.name;
+                                        const [language2, description] = localization.description;
+                                        subOption.name_localizations = { ...subOption.name_localizations, [language]: name };
+                                        subOption.description_localizations = { ...subOption.description_localizations, [language2]: description };
+                                    }
+                                    // subcommand options description localization
+                                    subOption.description = T(Locale.EnglishUS, subOption.description);
+                                });
+                            }
+                        });
+                    }
+                    this.body.push(data);
                 }
             }
         }
+
         this.once("ready", async () => {
-            const applicationCommands =
-                this.config.production === true
-                    ? Routes.applicationCommands(this.user.id ?? "")
-                    : Routes.applicationGuildCommands(this.user.id ?? "", this.config.guildId ?? "");
+            const route = this.config.production
+                ? Routes.applicationCommands(this.user?.id ?? "")
+                : Routes.applicationGuildCommands(this.user?.id ?? "", this.config.guildId ?? "");
+
             try {
-                const rest = new REST({ version: "9" }).setToken(this.config.token ?? "");
-                await rest.put(applicationCommands, { body: this.body });
+                const rest = new REST({ version: "10" }).setToken(this.config.token ?? "");
+                await rest.put(route, { body: this.body });
                 this.logger.info("Successfully loaded slash commands!");
             } catch (error) {
                 this.logger.error(error);
@@ -109,30 +174,29 @@ export default class Lavamusic extends Client {
             version: "v4",
             format: "shoukaku",
         });
-
         const res = await fetch(`https://lavainfo-api.deno.dev/nodes?${params.toString()}`, {
             headers: {
                 "Content-Type": "application/json",
             },
         });
-
         return await res.json();
     }
 
     private async loadEvents(): Promise<void> {
-        const eventsPath = fs.readdirSync(path.join(__dirname, "../events"));
-        for (const dir of eventsPath) {
-            const events = fs.readdirSync(path.join(__dirname, `../events/${dir}`)).filter((file) => file.endsWith(".js"));
-            for (const file of events) {
-                const event = (await import(`../events/${dir}/${file}`)).default;
-                const evt = new event(this, file);
-                switch (dir) {
-                    case "player":
-                        this.shoukaku.on(evt.name, (...args) => evt.run(...args));
-                        break;
-                    default:
-                        this.on(evt.name, (...args) => evt.run(...args));
-                        break;
+        const eventsPath = path.join(__dirname, "../events");
+        const eventDirs = fs.readdirSync(eventsPath);
+
+        for (const dir of eventDirs) {
+            const eventFiles = fs.readdirSync(path.join(eventsPath, dir)).filter((file) => file.endsWith(".js"));
+
+            for (const file of eventFiles) {
+                const eventModule = await import(`../events/${dir}/${file}`);
+                const event = new eventModule.default(this, file);
+
+                if (dir === "player") {
+                    this.shoukaku.on(event.name, (...args) => event.run(...args));
+                } else {
+                    this.on(event.name, (...args) => event.run(...args));
                 }
             }
         }
